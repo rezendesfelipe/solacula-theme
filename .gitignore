@@ -2,3 +2,4 @@
 *.zip
 vscode/icon.png
 __pycache__/
+.claude/
