@@ -1,0 +1,4 @@
+*.vsix
+*.zip
+vscode/icon.png
+__pycache__/

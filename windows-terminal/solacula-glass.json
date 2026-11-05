@@ -1,0 +1,48 @@
+{
+    "schemes": [
+        {
+            "name": "Solacula Glass",
+            "background": "#142A36",
+            "foreground": "#D4DCD6",
+            "cursorColor": "#FF79C6",
+            "selectionBackground": "#44475A",
+            "black": "#073642",
+            "red": "#FF5555",
+            "green": "#6CCF60",
+            "yellow": "#E6C35C",
+            "blue": "#268BD2",
+            "purple": "#BD93F9",
+            "cyan": "#2AA198",
+            "white": "#EEE8D5",
+            "brightBlack": "#6272A4",
+            "brightRed": "#FF6E6E",
+            "brightGreen": "#69FF94",
+            "brightYellow": "#F1FA8C",
+            "brightBlue": "#6CB6FF",
+            "brightPurple": "#D6ACFF",
+            "brightCyan": "#8BE9FD",
+            "brightWhite": "#FDF6E3"
+        }
+    ],
+    "themes": [
+        {
+            "name": "Solacula Glass",
+            "window": { "applicationTheme": "dark", "useMica": false },
+            "tabRow": { "background": "#0B1A22B3", "unfocusedBackground": "#0B1A2280" },
+            "tab": { "background": "#13232CF2", "unfocusedBackground": "#0B1A2200", "showCloseButton": "hover" }
+        }
+    ],
+    "profileSettings": {
+        "colorScheme": "Solacula Glass",
+        "useAcrylic": true,
+        "opacity": 78,
+        "font": { "face": "Cascadia Code", "size": 11 },
+        "cursorShape": "bar",
+        "padding": "12",
+        "adjustIndistinguishableColors": "indexed"
+    },
+    "globalSettings": {
+        "theme": "Solacula Glass",
+        "useAcrylicInTabRow": true
+    }
+}

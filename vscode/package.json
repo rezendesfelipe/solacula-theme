@@ -1,0 +1,22 @@
+{
+  "name": "solacula-dark",
+  "displayName": "Solacula Dark",
+  "description": "Solarized Dark + Dracula: fundo azul-petróleo do Solarized com os acentos vibrantes do Dracula.",
+  "version": "1.0.0",
+  "publisher": "rezendesfelipe",
+  "author": { "name": "Felipe da Silva Rezende" },
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": { "color": "#142A36", "theme": "dark" },
+  "repository": { "type": "git", "url": "https://github.com/rezendesfelipe/solacula-theme" },
+  "bugs": { "url": "https://github.com/rezendesfelipe/solacula-theme/issues" },
+  "homepage": "https://github.com/rezendesfelipe/solacula-theme#readme",
+  "keywords": ["theme", "dark", "solarized", "dracula", "solacula", "windows terminal"],
+  "engines": { "vscode": "^1.70.0" },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [
+      { "label": "Solacula Dark", "uiTheme": "vs-dark", "path": "./themes/solacula-dark-color-theme.json" }
+    ]
+  }
+}
