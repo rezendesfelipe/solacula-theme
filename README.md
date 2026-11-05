@@ -69,12 +69,29 @@ O workflow [`release.yml`](.github/workflows/release.yml) roda a cada push na `m
 1. Regenera o tema e falha se o JSON commitado estiver dessincronizado do `gen_theme.py`.
 2. Empacota o `.vsix` com `@vscode/vsce` e o `.zip` do Windows Terminal.
 3. Se a tag `v<versão do package.json>` ainda não existe, cria a GitHub Release com os dois artefatos.
-4. Publica no VS Code Marketplace e no Open VSX **se** os secrets existirem:
+4. Publica no VS Code Marketplace e no Open VSX, nos canais configurados:
 
-| Secret | Onde obter |
-|---|---|
-| `VSCE_PAT` | Azure DevOps → Personal Access Token com escopo **Marketplace → Manage**, organização **All accessible organizations** |
-| `OVSX_PAT` | [open-vsx.org](https://open-vsx.org) → Settings → Access Tokens (namespace `rezendesfelipe` precisa existir) |
+| Canal | Autenticação | Configuração |
+|---|---|---|
+| VS Code Marketplace | **OIDC Trusted Publishing** — sem secret; o token OIDC do GitHub é trocado por uma credencial do Marketplace válida por 15 min | Política no publisher + variável `VSCE_TRUSTED_PUBLISHING=true` (abaixo) |
+| Open VSX | Token do Open VSX | Secret `OVSX_PAT` ([open-vsx.org](https://open-vsx.org) → Settings → Access Tokens; namespace `rezendesfelipe`) |
+
+### Configurar o Trusted Publishing (uma vez)
+
+1. Em [marketplace.visualstudio.com/manage](https://marketplace.visualstudio.com/manage), crie o publisher `rezendesfelipe` (se ainda não existir).
+2. No publisher → **Trusted Publishing** → **Create**:
+
+   | Campo | Valor |
+   |---|---|
+   | Repository owner | `rezendesfelipe` |
+   | Repository | `solacula-theme` |
+   | Workflow | `release.yml` |
+   | Environment | `marketplace` |
+
+3. Ative o passo no CI: `gh variable set VSCE_TRUSTED_PUBLISHING -b true -R rezendesfelipe/solacula-theme`
+4. Publique: `gh workflow run release.yml -R rezendesfelipe/solacula-theme -f publish=true`
+
+> Repositório privado: o Marketplace exige que o workflow rode em até 48 h após a criação da política.
 
 Para lançar uma versão nova: suba o `version` em `vscode/package.json`, adicione a entrada no `vscode/CHANGELOG.md` e faça push.
 

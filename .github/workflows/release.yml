@@ -36,7 +36,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Gerar tema e ícone
         working-directory: vscode
@@ -60,7 +60,7 @@ jobs:
 
       - name: Empacotar extensão VS Code
         working-directory: vscode
-        run: npx --yes @vscode/vsce@3.2.1 package --out "../solacula-dark-${{ steps.meta.outputs.version }}.vsix"
+        run: npx --yes @vscode/vsce@4.0.0 package --out "../solacula-dark-${{ steps.meta.outputs.version }}.vsix"
 
       - name: Empacotar Windows Terminal
         run: cd windows-terminal && zip -r "../solacula-windows-terminal-${{ steps.meta.outputs.version }}.zip" .
@@ -99,27 +99,31 @@ jobs:
       always() && needs.build.result == 'success' &&
       (needs.release.result == 'success' || (needs.release.result == 'skipped' && inputs.publish))
     runs-on: ubuntu-latest
+    # Trusted Publishing: a política no Marketplace valida owner/repo/workflow/environment do token OIDC
+    environment: marketplace
+    permissions:
+      contents: read
+      id-token: write
     env:
-      VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
       VSIX: solacula-dark-${{ needs.build.outputs.version }}.vsix
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - uses: actions/download-artifact@v4
         with:
           name: dist
 
-      - name: VS Code Marketplace
-        if: env.VSCE_PAT != ''
-        run: npx --yes @vscode/vsce@3.2.1 publish --packagePath "$VSIX" -p "$VSCE_PAT"
+      - name: VS Code Marketplace (OIDC Trusted Publishing)
+        if: vars.VSCE_TRUSTED_PUBLISHING == 'true'
+        run: npx --yes @vscode/vsce@4.0.0 publish --oidc --packagePath "$VSIX" --skip-duplicate
 
       - name: Open VSX
         if: env.OVSX_PAT != ''
         run: npx --yes ovsx@0.10.1 publish "$VSIX" -p "$OVSX_PAT"
 
-      - name: Aviso de secrets ausentes
-        if: env.VSCE_PAT == '' || env.OVSX_PAT == ''
-        run: echo "::notice::Publicação pulada para os canais sem secret (VSCE_PAT/OVSX_PAT). A GitHub Release foi criada normalmente."
+      - name: Aviso de canais não configurados
+        if: vars.VSCE_TRUSTED_PUBLISHING != 'true' || env.OVSX_PAT == ''
+        run: echo "::notice::Publicação pulada para canais não configurados (variável VSCE_TRUSTED_PUBLISHING e/ou secret OVSX_PAT). A GitHub Release foi criada normalmente."
