@@ -8,6 +8,11 @@ on:
       - "windows-terminal/**"
       - ".github/workflows/release.yml"
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publicar a versão atual no Marketplace/Open VSX mesmo que a release já exista"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -89,6 +94,10 @@ jobs:
 
   publish:
     needs: [build, release]
+    # Publica quando a release acabou de ser criada, ou sob demanda (workflow_dispatch com publish=true)
+    if: >-
+      always() && needs.build.result == 'success' &&
+      (needs.release.result == 'success' || (needs.release.result == 'skipped' && inputs.publish))
     runs-on: ubuntu-latest
     env:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}

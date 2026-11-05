@@ -78,6 +78,8 @@ O workflow [`release.yml`](.github/workflows/release.yml) roda a cada push na `m
 
 Para lançar uma versão nova: suba o `version` em `vscode/package.json`, adicione a entrada no `vscode/CHANGELOG.md` e faça push.
 
+Para publicar uma versão que já tem release (ex.: secrets cadastrados depois): `gh workflow run release.yml -f publish=true`.
+
 ## Licença
 
 [MIT](LICENSE)
