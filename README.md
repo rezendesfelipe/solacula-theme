@@ -74,9 +74,11 @@ O workflow [`release.yml`](.github/workflows/release.yml) roda a cada push na `m
 | Canal | Autenticação | Configuração |
 |---|---|---|
 | VS Code Marketplace | **OIDC Trusted Publishing** — sem secret; o token OIDC do GitHub é trocado por uma credencial do Marketplace válida por 15 min | Política no publisher + variável `VSCE_TRUSTED_PUBLISHING=true` (abaixo) |
-| Open VSX | Token do Open VSX | Secret `OVSX_PAT` ([open-vsx.org](https://open-vsx.org) → Settings → Access Tokens; namespace `rezendesfelipe`) |
+| Open VSX | **OIDC Trusted Publishing** — sem secret; o registry emite um token de publicação válido por poucos minutos | Namespace + trusted publisher + variável `OVSX_TRUSTED_PUBLISHING=true` (abaixo) |
 
-### Configurar o Trusted Publishing (uma vez)
+Os dois passos rodam no environment `marketplace`, que exige aprovação manual e só aceita a branch `main`.
+
+### Configurar o Trusted Publishing no VS Code Marketplace (uma vez)
 
 1. Em [marketplace.visualstudio.com/manage](https://marketplace.visualstudio.com/manage), crie o publisher `rezendesfelipe` (se ainda não existir).
 2. No publisher → **Trusted Publishing** → **Create**:
@@ -93,9 +95,19 @@ O workflow [`release.yml`](.github/workflows/release.yml) roda a cada push na `m
 
 > Repositório privado: o Marketplace exige que o workflow rode em até 48 h após a criação da política.
 
+### Configurar o Trusted Publishing no Open VSX (uma vez)
+
+1. Entre em [open-vsx.org](https://open-vsx.org) com a conta GitHub e aceite o *Eclipse Foundation Open VSX Publisher Agreement* em **Settings → Profile** (exige vincular uma conta Eclipse).
+2. Crie o namespace `rezendesfelipe` — igual ao `publisher` do `package.json`. Pela UI (**Settings → Namespaces**) ou, com um token temporário de **Settings → Access Tokens**: `npx ovsx@1.3.0 create-namespace rezendesfelipe -p <token>` (apague o token em seguida).
+3. Em [Settings → Trusted Publishers](https://open-vsx.org/user-settings/trusted-publishers), registre para `rezendesfelipe.solacula-dark`: owner `rezendesfelipe`, repositório `solacula-theme`, workflow `release.yml`, environment `marketplace`.
+4. Ative o passo no CI: `gh variable set OVSX_TRUSTED_PUBLISHING -b true -R rezendesfelipe/solacula-theme`
+5. Publique: `gh workflow run release.yml -R rezendesfelipe/solacula-theme -f publish=true` (o Marketplace é ignorado por `--skip-duplicate` se a versão já existir lá).
+
+> Criar o namespace não garante exclusividade: para isso, [reivindique a propriedade](https://github.com/eclipse/openvsx/wiki/Namespace-Access).
+
 Para lançar uma versão nova: suba o `version` em `vscode/package.json`, adicione a entrada no `vscode/CHANGELOG.md` e faça push.
 
-Para publicar uma versão que já tem release (ex.: secrets cadastrados depois): `gh workflow run release.yml -f publish=true`.
+Para publicar uma versão que já tem release (ex.: canal configurado depois): `gh workflow run release.yml -f publish=true`.
 
 ## Licença
 
