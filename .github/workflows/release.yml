@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vscode/**"
+      - "windows-terminal/**"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      released: ${{ steps.meta.outputs.released }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Gerar tema e ícone
+        working-directory: vscode
+        run: |
+          python gen_theme.py
+          python gen_icon.py
+
+      - name: Verificar sincronia do tema com gen_theme.py
+        run: git diff --exit-code -- vscode/themes
+
+      - name: Versão e tag
+        id: meta
+        run: |
+          version=$(node -p "require('./vscode/package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Empacotar extensão VS Code
+        working-directory: vscode
+        run: npx --yes @vscode/vsce@3.2.1 package --out "../solacula-dark-${{ steps.meta.outputs.version }}.vsix"
+
+      - name: Empacotar Windows Terminal
+        run: cd windows-terminal && zip -r "../solacula-windows-terminal-${{ steps.meta.outputs.version }}.zip" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            *.vsix
+            *.zip
+
+  release:
+    needs: build
+    if: needs.build.outputs.released == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: Criar GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          gh release create "v$VERSION" ./*.vsix ./*.zip \
+            --title "Solacula v$VERSION" \
+            --notes-file vscode/CHANGELOG.md
+
+  publish:
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      VSIX: solacula-dark-${{ needs.build.outputs.version }}.vsix
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx --yes @vscode/vsce@3.2.1 publish --packagePath "$VSIX" -p "$VSCE_PAT"
+
+      - name: Open VSX
+        if: env.OVSX_PAT != ''
+        run: npx --yes ovsx@0.10.1 publish "$VSIX" -p "$OVSX_PAT"
+
+      - name: Aviso de secrets ausentes
+        if: env.VSCE_PAT == '' || env.OVSX_PAT == ''
+        run: echo "::notice::Publicação pulada para os canais sem secret (VSCE_PAT/OVSX_PAT). A GitHub Release foi criada normalmente."
