@@ -60,7 +60,7 @@ jobs:
 
       - name: Empacotar extensão VS Code
         working-directory: vscode
-        run: npx --yes @vscode/vsce@4.0.0 package --out "../solacula-dark-${{ steps.meta.outputs.version }}.vsix"
+        run: npx --yes @vscode/vsce@4.1.0 package --out "../solacula-dark-${{ steps.meta.outputs.version }}.vsix"
 
       - name: Empacotar Windows Terminal
         run: cd windows-terminal && zip -r "../solacula-windows-terminal-${{ steps.meta.outputs.version }}.zip" .
@@ -118,7 +118,7 @@ jobs:
 
       - name: VS Code Marketplace (OIDC Trusted Publishing)
         if: vars.VSCE_TRUSTED_PUBLISHING == 'true'
-        run: npx --yes @vscode/vsce@4.0.0 publish --oidc --packagePath "$VSIX" --skip-duplicate
+        run: npx --yes @vscode/vsce@4.1.0 publish --oidc --packagePath "$VSIX" --skip-duplicate
 
       - name: Open VSX
         if: env.OVSX_PAT != ''
